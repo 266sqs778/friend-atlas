@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Friend Atlas · 朋友分布可视化</title>
+<meta name="description" content="Friend Atlas 是一个本地优先的朋友分布可视化工具：中国地图热力、省份下钻、关系网络图与多维分析，数据只保存在浏览器本地。">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="./src/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./src/styles/tokens.css">
+<link rel="stylesheet" href="./src/styles/app.css">
+<script defer src="./vendor/echarts.min.js"></script>
+<script type="module" src="./src/main.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<header class="toolbar" role="banner">
+  <div class="toolbar__inner">
+    <div class="brand">
+      <span class="brand__mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 21s7-5.1 7-11a7 7 0 1 0-14 0c0 5.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/>
+        </svg>
+      </span>
+      <span class="brand__text">
+        <strong>Friend Atlas</strong>
+        <small>朋友分布可视化</small>
+      </span>
+    </div>
+
+    <nav class="segmented" role="tablist" aria-label="视图切换">
+      <button class="segmented__item is-active" role="tab" id="tab-overview" aria-selected="true" aria-controls="view-overview" data-view="overview">概览</button>
+      <button class="segmented__item" role="tab" id="tab-network" aria-selected="false" aria-controls="view-network" data-view="network">关系网</button>
+      <button class="segmented__item" role="tab" id="tab-analytics" aria-selected="false" aria-controls="view-analytics" data-view="analytics">分析</button>
+    </nav>
+
+    <div class="toolbar__actions">
+      <button class="icon-btn" id="btn-theme" type="button" aria-label="切换深色外观" title="切换外观 (T)">
+        <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.8v2.2M12 19v2.2M2.8 12H5M19 12h2.2M5.5 5.5l1.6 1.6M16.9 16.9l1.6 1.6M18.5 5.5l-1.6 1.6M7.1 16.9l-1.6 1.6"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.2 8.2 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+      </button>
+      <button class="btn btn--ghost" id="btn-import" type="button">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        <span>导入</span>
+      </button>
+      <button class="btn btn--ghost" id="btn-export" type="button">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14V3m0 0 4 4m-4-4L8 7"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        <span>导出</span>
+      </button>
+      <button class="btn btn--primary" id="btn-add" type="button">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span>添加朋友</span>
+        <kbd>N</kbd>
+      </button>
+    </div>
+  </div>
+
+  <div class="filterbar" id="filterbar" role="group" aria-label="筛选与搜索">
+    <div class="searchfield">
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+      <input id="search" type="search" placeholder="搜索姓名、城市或备注" aria-label="搜索朋友" autocomplete="off">
+      <kbd class="searchfield__kbd">/</kbd>
+    </div>
+
+    <div class="chips" id="filter-relationship" role="group" aria-label="按关系筛选"></div>
+
+    <div class="chips" id="filter-gender" role="group" aria-label="按性别筛选">
+      <button class="chip" type="button" data-gender="男" aria-pressed="false">男</button>
+      <button class="chip" type="button" data-gender="女" aria-pressed="false">女</button>
+      <button class="chip" type="button" data-gender="其他" aria-pressed="false">其他</button>
+    </div>
+
+    <label class="select-wrap">
+      <span class="visually-hidden">按省份筛选</span>
+      <select id="filter-province"><option value="">全部省份</option></select>
+    </label>
+
+    <label class="select-wrap">
+      <span class="visually-hidden">排序方式</span>
+      <select id="sort">
+        <option value="recent">最近添加</option>
+        <option value="name">按姓名</option>
+        <option value="age">按年龄</option>
+        <option value="province">按省份</option>
+      </select>
+    </label>
+
+    <button class="btn btn--quiet" id="btn-reset-filters" type="button">重置</button>
+    <span class="filterbar__count" id="filter-count" aria-live="polite"></span>
+  </div>
+</header>
+
+<main id="main" class="page">
+
+  <section class="kpis" aria-label="总览指标">
+    <article class="kpi">
+      <span class="kpi__label">朋友总数</span>
+      <strong class="kpi__value" id="kpi-total">0</strong>
+      <span class="kpi__hint" id="kpi-total-hint">共 0 条记录</span>
+    </article>
+    <article class="kpi">
+      <span class="kpi__label">覆盖省份</span>
+      <strong class="kpi__value" id="kpi-provinces">0</strong>
+      <span class="kpi__hint" id="kpi-provinces-hint">—</span>
+    </article>
+    <article class="kpi">
+      <span class="kpi__label">覆盖城市</span>
+      <strong class="kpi__value" id="kpi-cities">0</strong>
+      <span class="kpi__hint" id="kpi-cities-hint">—</span>
+    </article>
+    <article class="kpi">
+      <span class="kpi__label">平均年龄</span>
+      <strong class="kpi__value" id="kpi-age">—</strong>
+      <span class="kpi__hint" id="kpi-age-hint">基于已填写生日</span>
+    </article>
+    <article class="kpi kpi--wide">
+      <div class="kpi__row">
+        <span class="kpi__label">性别比例</span>
+        <span class="kpi__hint" id="kpi-gender-hint">—</span>
+      </div>
+      <div class="genderbar" aria-hidden="true">
+        <span class="genderbar__male" id="genderbar-male"></span>
+        <span class="genderbar__female" id="genderbar-female"></span>
+        <span class="genderbar__other" id="genderbar-other"></span>
+      </div>
+      <div class="legend-inline">
+        <span><i class="dot dot--male"></i>男 <b id="legend-male">0</b></span>
+        <span><i class="dot dot--female"></i>女 <b id="legend-female">0</b></span>
+        <span><i class="dot dot--other"></i>其他 <b id="legend-other">0</b></span>
+      </div>
+    </article>
+  </section>
+
+  <!-- 概览 -->
+  <section class="view is-active" id="view-overview" role="tabpanel" aria-labelledby="tab-overview">
+    <div class="overview-grid">
+      <article class="card card--map">
+        <header class="card__head">
+          <div>
+            <h2>全国分布热力</h2>
+            <p class="card__sub" id="map-sub">点击省份可下钻查看城市分布</p>
+          </div>
+          <div class="card__tools">
+            <span class="pill" id="map-badge">0 位朋友</span>
+          </div>
+        </header>
+        <div class="chart-wrap">
+          <div class="skeleton" id="map-skeleton" aria-hidden="true">
+            <span class="skeleton__line skeleton__line--lg"></span>
+            <span class="skeleton__line"></span>
+            <span class="skeleton__line skeleton__line--sm"></span>
+          </div>
+          <div class="chart" id="map-chart" role="img" aria-label="中国地图，按省份展示朋友数量"></div>
+        </div>
+      </article>
+
+      <aside class="card card--drill" id="drill" aria-live="polite">
+        <header class="card__head">
+          <div>
+            <h2 id="drill-title">省份下钻</h2>
+            <p class="card__sub" id="drill-sub">在地图上选择省份</p>
+          </div>
+          <button class="btn btn--quiet btn--sm" id="btn-drill-reset" type="button" hidden>返回全国</button>
+        </header>
+        <div class="drill__body" id="drill-body">
+          <div class="empty">
+            <span class="empty__glyph" aria-hidden="true">🗺️</span>
+            <p>还没有选中省份</p>
+            <small>点击左侧地图中的任一省份，即可查看该省的城市分布与好友名单。</small>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <article class="card card--list">
+      <header class="card__head">
+        <div>
+          <h2>朋友名录</h2>
+          <p class="card__sub" id="list-sub">全部记录</p>
+        </div>
+        <div class="card__tools">
+          <button class="btn btn--quiet btn--sm" id="btn-load-demo" type="button">载入示例数据</button>
+          <button class="btn btn--quiet btn--sm" id="btn-clear" type="button">清空数据</button>
+        </div>
+      </header>
+      <div class="list" id="friend-list" aria-live="polite"></div>
+    </article>
+  </section>
+
+  <!-- 关系网 -->
+  <section class="view" id="view-network" role="tabpanel" aria-labelledby="tab-network" hidden>
+    <div class="overview-grid">
+      <article class="card card--map">
+        <header class="card__head">
+          <div>
+            <h2>关系网络</h2>
+            <p class="card__sub">以「我」为中心的社交图谱，按关系类型着色，可拖拽缩放</p>
+          </div>
+          <span class="pill" id="network-badge">0 个节点</span>
+        </header>
+        <div class="chart-wrap chart-wrap--tall">
+          <div class="chart" id="network-chart" role="img" aria-label="朋友关系网络图"></div>
+        </div>
+      </article>
+
+      <aside class="card">
+        <header class="card__head">
+          <div>
+            <h2>关系构成</h2>
+            <p class="card__sub">按关系类型的分布与占比</p>
+          </div>
+        </header>
+        <div class="relation-list" id="relation-list"></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 分析 -->
+  <section class="view" id="view-analytics" role="tabpanel" aria-labelledby="tab-analytics" hidden>
+    <div class="analytics-grid">
+      <article class="card">
+        <header class="card__head"><div><h2>年龄结构</h2><p class="card__sub">按 5 岁区间统计</p></div></header>
+        <div class="chart chart--sm" id="chart-age" role="img" aria-label="年龄结构柱状图"></div>
+      </article>
+      <article class="card">
+        <header class="card__head"><div><h2>关系构成</h2><p class="card__sub">各关系类型人数占比</p></div></header>
+        <div class="chart chart--sm" id="chart-relationship" role="img" aria-label="关系构成环形图"></div>
+      </article>
+      <article class="card">
+        <header class="card__head"><div><h2>城市 TOP 8</h2><p class="card__sub">朋友数量最多的城市</p></div></header>
+        <div class="chart chart--sm" id="chart-city" role="img" aria-label="城市排行条形图"></div>
+      </article>
+      <article class="card">
+        <header class="card__head"><div><h2>省份分布</h2><p class="card__sub">按省份汇总的朋友数量</p></div></header>
+        <div class="chart chart--sm" id="chart-province" role="img" aria-label="省份分布条形图"></div>
+      </article>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>本地优先 · 数据仅保存在浏览器 localStorage，不上传任何服务器</span>
+    <span class="foot__dot">·</span>
+    <span>Demo 数据均为虚构</span>
+  </footer>
+</main>
+
+<!-- 朋友编辑面板 -->
+<div class="sheet" id="sheet-friend" hidden>
+  <div class="sheet__scrim" data-close="friend"></div>
+  <section class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="sheet-friend-title">
+    <header class="sheet__head">
+      <div>
+        <h2 id="sheet-friend-title">添加朋友</h2>
+        <p class="card__sub" id="sheet-friend-sub">带 * 的字段为必填</p>
+      </div>
+      <button class="icon-btn" type="button" data-close="friend" aria-label="关闭">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </header>
+    <form id="friend-form" class="form" novalidate>
+      <input type="hidden" id="friend-id" name="id">
+      <div class="form__grid">
+        <label class="field">
+          <span>姓名 <i aria-hidden="true">*</i></span>
+          <input id="f-name" name="name" type="text" maxlength="20" placeholder="例如：林小满" required autocomplete="off">
+        </label>
+        <fieldset class="field">
+          <legend>性别 <i aria-hidden="true">*</i></legend>
+          <div class="segmented segmented--sm" id="f-gender" role="radiogroup" aria-label="性别">
+            <button type="button" role="radio" aria-checked="true" data-gender="男">男</button>
+            <button type="button" role="radio" aria-checked="false" data-gender="女">女</button>
+            <button type="button" role="radio" aria-checked="false" data-gender="其他">其他</button>
+          </div>
+          <input type="hidden" id="f-gender-value" name="gender" value="男">
+        </fieldset>
+        <label class="field">
+          <span>生日</span>
+          <input id="f-birthday" name="birthday" type="date">
+        </label>
+        <label class="field">
+          <span>关系 <i aria-hidden="true">*</i></span>
+          <select id="f-relationship" name="relationship" required>
+            <option value="">请选择关系</option>
+            <option value="朋友">朋友</option>
+            <option value="同学">同学</option>
+            <option value="同事">同事</option>
+            <option value="亲戚">亲戚</option>
+            <option value="合作伙伴">合作伙伴</option>
+            <option value="其他">其他</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>省份 <i aria-hidden="true">*</i></span>
+          <select id="f-province" name="province" required><option value="">请选择省份</option></select>
+        </label>
+        <label class="field">
+          <span>城市 <i aria-hidden="true">*</i></span>
+          <select id="f-city" name="city" required disabled><option value="">请先选择省份</option></select>
+        </label>
+        <label class="field field--full">
+          <span>备注</span>
+          <textarea id="f-notes" name="notes" rows="3" maxlength="500" placeholder="认识的时间、共同经历、近况…"></textarea>
+        </label>
+      </div>
+      <p class="form__error" id="form-error" role="alert" hidden></p>
+      <footer class="sheet__foot">
+        <button class="btn btn--quiet" type="button" data-close="friend">取消</button>
+        <button class="btn btn--primary" type="submit" id="btn-save">保存</button>
+      </footer>
+    </form>
+  </section>
+</div>
+
+<!-- 导入面板 -->
+<div class="sheet" id="sheet-import" hidden>
+  <div class="sheet__scrim" data-close="import"></div>
+  <section class="sheet__panel sheet__panel--narrow" role="dialog" aria-modal="true" aria-labelledby="sheet-import-title">
+    <header class="sheet__head">
+      <div>
+        <h2 id="sheet-import-title">导入数据</h2>
+        <p class="card__sub">支持 CSV / JSON，文件在本地解析，不会上传</p>
+      </div>
+      <button class="icon-btn" type="button" data-close="import" aria-label="关闭">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </header>
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-describedby="dropzone-hint">
+      <span class="dropzone__glyph" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0 4 4m-4-4L8 8"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      </span>
+      <strong>选择文件或拖入此处</strong>
+      <small id="dropzone-hint">CSV 表头：姓名, 性别, 生日, 省份, 城市, 关系, 备注（≤ 5MB）</small>
+      <input id="file-input" type="file" accept=".csv,.json,.txt" hidden>
+    </div>
+    <p class="import-status" id="import-status" aria-live="polite"></p>
+    <footer class="sheet__foot">
+      <button class="btn btn--quiet" type="button" data-close="import">取消</button>
+      <button class="btn btn--primary" type="button" id="btn-import-confirm" disabled>导入</button>
+    </footer>
+  </section>
+</div>
+
+<!-- 确认对话框 -->
+<div class="dialog" id="dialog-confirm" hidden>
+  <div class="dialog__scrim" data-close="confirm"></div>
+  <div class="dialog__panel" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+    <h2 id="confirm-title">确认操作</h2>
+    <p id="confirm-message"></p>
+    <div class="dialog__actions">
+      <button class="btn btn--quiet" type="button" id="confirm-cancel">取消</button>
+      <button class="btn btn--danger" type="button" id="confirm-ok">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+</body>
+</html>

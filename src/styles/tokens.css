@@ -1,0 +1,135 @@
+/* ==========================================================================
+   Design tokens — Apple HIG inspired
+   Principles applied: purpose, agency, responsibility, familiarity,
+   flexibility, simplicity, craft, delight.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* Type */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+  --text-2xs: 11px;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 30px;
+  --text-3xl: 38px;
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+
+  /* Spacing — 4pt grid */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 56px;
+
+  /* Corner radii — squircle-adjacent continuous curves */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 140ms;
+  --dur-base: 240ms;
+  --dur-slow: 420ms;
+
+  /* Semantic colours */
+  --blue: #0071e3;
+  --blue-pressed: #0062c4;
+  --green: #248a3d;
+  --orange: #c93400;
+  --red: #d70015;
+  --pink: #d12b6b;
+  --purple: #8944ab;
+  --teal: #0071a4;
+  --indigo: #3f51b5;
+
+  /* Light surfaces */
+  --bg: #f5f5f7;
+  --bg-gradient: radial-gradient(1200px 600px at 12% -10%, #eaf1fb 0%, rgba(234, 241, 251, 0) 60%),
+    radial-gradient(900px 500px at 100% 0%, #f3ecff 0%, rgba(243, 236, 255, 0) 55%);
+  --surface: #ffffff;
+  --surface-2: #fbfbfd;
+  --surface-translucent: rgba(255, 255, 255, 0.76);
+  --fill: rgba(120, 120, 128, 0.12);
+  --fill-strong: rgba(120, 120, 128, 0.2);
+
+  --label: #1d1d1f;
+  --label-2: rgba(60, 60, 67, 0.62);
+  --label-3: rgba(60, 60, 67, 0.4);
+  --separator: rgba(60, 60, 67, 0.12);
+  --separator-strong: rgba(60, 60, 67, 0.22);
+
+  --accent: var(--blue);
+  --accent-contrast: #ffffff;
+  --accent-soft: rgba(0, 113, 227, 0.1);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(0, 0, 0, 0.04);
+  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.05), 0 18px 42px rgba(0, 0, 0, 0.09);
+  --shadow-3: 0 24px 60px rgba(0, 0, 0, 0.18);
+  --ring: 0 0 0 3.5px rgba(0, 113, 227, 0.28);
+
+  --map-empty: #eef1f5;
+  --map-border: #ffffff;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --blue: #0a84ff;
+  --blue-pressed: #409cff;
+  --green: #30d158;
+  --orange: #ff9f0a;
+  --red: #ff453a;
+  --pink: #ff375f;
+  --purple: #bf5af2;
+  --teal: #40c8e0;
+  --indigo: #7d8cff;
+
+  --bg: #000000;
+  --bg-gradient: radial-gradient(1100px 560px at 8% -12%, rgba(10, 132, 255, 0.16) 0%, rgba(0, 0, 0, 0) 62%),
+    radial-gradient(900px 520px at 102% -4%, rgba(191, 90, 242, 0.14) 0%, rgba(0, 0, 0, 0) 58%);
+  --surface: #1c1c1e;
+  --surface-2: #232326;
+  --surface-translucent: rgba(28, 28, 30, 0.72);
+  --fill: rgba(120, 120, 128, 0.24);
+  --fill-strong: rgba(120, 120, 128, 0.36);
+
+  --label: #f5f5f7;
+  --label-2: rgba(235, 235, 245, 0.62);
+  --label-3: rgba(235, 235, 245, 0.38);
+  --separator: rgba(84, 84, 88, 0.6);
+  --separator-strong: rgba(120, 120, 128, 0.52);
+
+  --accent: var(--blue);
+  --accent-contrast: #ffffff;
+  --accent-soft: rgba(10, 132, 255, 0.18);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5), 0 6px 18px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.55), 0 22px 48px rgba(0, 0, 0, 0.5);
+  --shadow-3: 0 24px 64px rgba(0, 0, 0, 0.7);
+  --ring: 0 0 0 3.5px rgba(10, 132, 255, 0.45);
+
+  --map-empty: #242428;
+  --map-border: #3a3a3e;
+}

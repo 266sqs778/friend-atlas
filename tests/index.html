@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Friend Atlas · 单元测试</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; margin: 0; padding: 40px 24px; background: #f5f5f7; color: #1d1d1f; }
+  @media (prefers-color-scheme: dark) { body { background: #000; color: #f5f5f7; } }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 24px; letter-spacing: -.02em; }
+  p.sub { color: #6e6e73; font-size: 13px; margin-top: 6px; }
+  .summary { margin: 24px 0 16px; font-size: 15px; font-weight: 600; }
+  ul { list-style: none; padding: 0; margin: 0; border: 1px solid rgba(120,120,128,.2); border-radius: 14px; overflow: hidden; background: rgba(255,255,255,.7); }
+  @media (prefers-color-scheme: dark) { ul { background: #1c1c1e; } }
+  li { display: flex; gap: 10px; padding: 11px 16px; border-bottom: 1px solid rgba(120,120,128,.16); font-size: 14px; align-items: flex-start; }
+  li:last-child { border-bottom: 0; }
+  .icon { font-weight: 700; }
+  .ok .icon { color: #248a3d; }
+  .fail .icon { color: #d70015; }
+  .fail { background: rgba(215,0,21,.06); }
+  .error { display: block; color: #d70015; font-size: 12px; margin-top: 4px; font-family: ui-monospace, monospace; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Friend Atlas 单元测试</h1>
+  <p class="sub">与 Node 共用同一套用例（tests/suite.js），纯函数层无需浏览器 API。</p>
+  <div class="summary" id="summary">运行中…</div>
+  <ul id="results"></ul>
+</main>
+<script type="module">
+  import { run } from "./harness.js";
+  import "./suite.js";
+
+  const { results, passed, failed } = await run();
+  document.getElementById("summary").textContent = `${passed} passed · ${failed} failed · ${results.length} total`;
+  document.getElementById("results").innerHTML = results
+    .map(
+      (item) => `<li class="${item.ok ? "ok" : "fail"}">
+        <span class="icon">${item.ok ? "✓" : "✗"}</span>
+        <span>${item.name}${item.ok ? "" : `<span class="error">${item.error}</span>`}</span>
+      </li>`
+    )
+    .join("");
+</script>
+</body>
+</html>

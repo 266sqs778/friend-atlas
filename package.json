@@ -1,0 +1,19 @@
+{
+  "name": "friend-atlas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "本地优先的朋友分布可视化 Demo：中国地图热力、省份下钻、关系网络与多维分析",
+  "keywords": [
+    "echarts",
+    "data-visualization",
+    "vanilla-javascript",
+    "local-first",
+    "china-map"
+  ],
+  "scripts": {
+    "start": "python -m http.server 8080",
+    "test": "node tests/run.mjs"
+  },
+  "license": "MIT"
+}
